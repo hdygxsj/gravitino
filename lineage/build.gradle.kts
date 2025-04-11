@@ -28,7 +28,6 @@ dependencies {
   implementation(libs.bundles.jersey)
   implementation(libs.commons.lang3)
   implementation(libs.guava)
-  implementation(libs.slf4j.api)
   implementation(libs.jackson.datatype.jdk8)
   implementation(libs.jackson.datatype.jsr310)
   implementation(libs.jackson.databind)
@@ -43,7 +42,6 @@ dependencies {
   testAnnotationProcessor(libs.lombok)
   testCompileOnly(libs.lombok)
 
-  testImplementation(libs.awaitility)
   testImplementation(libs.jersey.test.framework.core) {
     exclude(group = "org.junit.jupiter")
   }
