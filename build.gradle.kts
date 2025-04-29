@@ -50,8 +50,8 @@ plugins {
     alias(libs.plugins.spotless)
   } else {
     throw GradleException(
-      "The Gravitino Gradle toolchain currently does not support " +
-        "Java version ${JavaVersion.current()}. Please use JDK versions 8 through 17."
+      "Gravitino Gradle toolchain current doesn't support " +
+        "Java version: ${JavaVersion.current()}. Please use JDK8 to 17."
     )
   }
 
@@ -66,14 +66,14 @@ plugins {
 
 if (extra["jdkVersion"] !in listOf("8", "11", "17")) {
   throw GradleException(
-    "The Gravitino Gradle toolchain currently does not support building with " +
-      "Java version ${extra["jdkVersion"]}. Please use JDK versions 8, 11 or 17."
+    "Gravitino current doesn't support building with " +
+      "Java version: ${extra["jdkVersion"]}. Please use JDK8, 11 or 17."
   )
 }
 
 val scalaVersion: String = project.properties["scalaVersion"] as? String ?: extra["defaultScalaVersion"].toString()
 if (scalaVersion !in listOf("2.12", "2.13")) {
-  throw GradleException("Scala version $scalaVersion is not supported.")
+  throw GradleException("Found unsupported Scala version: $scalaVersion")
 }
 
 project.extra["extraJvmArgs"] = if (extra["jdkVersion"] in listOf("8", "11")) {
@@ -213,11 +213,9 @@ allprojects {
         param.environment("GRAVITINO_WAR", project.rootDir.path + "/web/web/dist/")
         param.systemProperty("testMode", "embedded")
       } else {
-        throw GradleException(
-          "Gravitino integration tests are only compatible with the modes " +
-            "[-PtestMode=embedded] or [-PtestMode=deploy]."
-        )
+        throw GradleException("Gravitino integration tests only support [-PtestMode=embedded] or [-PtestMode=deploy] mode!")
       }
+
       param.useJUnitPlatform()
       val skipUTs = project.hasProperty("skipTests")
       if (skipUTs) {
@@ -559,7 +557,6 @@ tasks.rat {
     "dev/docker/**/*.conf",
     "dev/docker/kerberos-hive/kadm5.acl",
     "docs/**/*.md",
-    "gradle/wrapper/gradle-wrapper.properties",
     "lineage/src/test/java/org/apache/gravitino/lineage/source/TestLineageOperations.java",
     "spark-connector/spark-common/src/test/resources/**",
     "web/web/.**",
