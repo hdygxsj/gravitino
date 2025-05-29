@@ -16,13 +16,12 @@
 # under the License.
 from typing import Optional, Dict, List
 
-from gravitino.api.model_version import ModelVersion
+from gravitino.api.model.model_version import ModelVersion
 from gravitino.dto.audit_dto import AuditDTO
 from gravitino.dto.model_version_dto import ModelVersionDTO
 
 
 class GenericModelVersion(ModelVersion):
-
     _model_version_dto: ModelVersionDTO
     """The model version DTO object."""
 

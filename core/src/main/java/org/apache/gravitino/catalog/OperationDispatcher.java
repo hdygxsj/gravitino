@@ -65,7 +65,7 @@ public abstract class OperationDispatcher {
    * @param store The EntityStore instance to be used for catalog operations.
    * @param idGenerator The IdGenerator instance to be used for catalog operations.
    */
-  public OperationDispatcher(
+  protected OperationDispatcher(
       CatalogManager catalogManager, EntityStore store, IdGenerator idGenerator) {
     this.catalogManager = catalogManager;
     this.store = store;
@@ -79,14 +79,14 @@ public abstract class OperationDispatcher {
       NameIdentifier catalogIdent = getCatalogIdentifier(tableIdent);
       CatalogManager.CatalogWrapper c = catalogManager.loadCatalogAndWrap(catalogIdent);
       return c.doWithPartitionOps(tableIdent, fn);
-    } catch (Throwable throwable) {
-      if (ex.isInstance(throwable)) {
-        throw ex.cast(throwable);
+    } catch (Exception exception) {
+      if (ex.isInstance(exception)) {
+        throw ex.cast(exception);
       }
-      if (RuntimeException.class.isAssignableFrom(throwable.getClass())) {
-        throw (RuntimeException) throwable;
+      if (RuntimeException.class.isAssignableFrom(exception.getClass())) {
+        throw (RuntimeException) exception;
       }
-      throw new RuntimeException(throwable);
+      throw new RuntimeException(exception);
     }
   }
 
@@ -98,14 +98,14 @@ public abstract class OperationDispatcher {
     try {
       CatalogManager.CatalogWrapper c = catalogManager.loadCatalogAndWrap(ident);
       return fn.apply(c);
-    } catch (Throwable throwable) {
-      if (ex.isInstance(throwable)) {
-        throw ex.cast(throwable);
+    } catch (Exception exception) {
+      if (ex.isInstance(exception)) {
+        throw ex.cast(exception);
       }
-      if (RuntimeException.class.isAssignableFrom(throwable.getClass())) {
-        throw (RuntimeException) throwable;
+      if (RuntimeException.class.isAssignableFrom(exception.getClass())) {
+        throw (RuntimeException) exception;
       }
-      throw new RuntimeException(throwable);
+      throw new RuntimeException(exception);
     }
   }
 
@@ -120,17 +120,17 @@ public abstract class OperationDispatcher {
     try {
       CatalogManager.CatalogWrapper c = catalogManager.loadCatalogAndWrap(ident);
       return fn.apply(c);
-    } catch (Throwable throwable) {
-      if (ex1.isInstance(throwable)) {
-        throw ex1.cast(throwable);
-      } else if (ex2.isInstance(throwable)) {
-        throw ex2.cast(throwable);
+    } catch (Exception exception) {
+      if (ex1.isInstance(exception)) {
+        throw ex1.cast(exception);
+      } else if (ex2.isInstance(exception)) {
+        throw ex2.cast(exception);
       }
-      if (RuntimeException.class.isAssignableFrom(throwable.getClass())) {
-        throw (RuntimeException) throwable;
+      if (RuntimeException.class.isAssignableFrom(exception.getClass())) {
+        throw (RuntimeException) exception;
       }
 
-      throw new RuntimeException(throwable);
+      throw new RuntimeException(exception);
     }
   }
 
@@ -233,12 +233,13 @@ public abstract class OperationDispatcher {
         IllegalArgumentException.class);
   }
 
-  protected boolean isEntityExist(NameIdentifier ident, Entity.EntityType type) {
+  protected <E extends Entity & HasIdentifier> E getEntity(
+      NameIdentifier ident, Entity.EntityType type, Class<E> entityClass) {
     try {
-      return store.exists(ident, type);
+      return store.get(ident, type, entityClass);
     } catch (Exception e) {
-      LOG.error(FormattedErrorMessages.STORE_OP_FAILURE, "exists", ident, e);
-      throw new RuntimeException("Fail to check if entity is existed", e);
+      LOG.warn(FormattedErrorMessages.STORE_OP_FAILURE, "get", ident, e.getMessage(), e);
+      return null;
     }
   }
 

@@ -21,7 +21,7 @@ Note: This maintainer and contributor tables at the end of this document list th
 
 # Committers
 
-The current Apache Gravitino project committers can be [viewed here](https://projects.apache.org/project.html?incubator-gravitino).
+The current Apache Gravitino project committers can be [viewed here](https://projects.apache.org/project.html?gravitino).
 
 ## Review process
 
@@ -115,7 +115,7 @@ All contributions from the people listed are licensed under the Apache License v
 |----------------|---------------------|------------------|
 | Kuan-Po Tseng  | brandboat           | SUSE             |
 | Nicholas Jiang | SteNicholas         | Bilibili         |
-| Eric Chang     | unknowntpo          | Lawsnote         |
+| Eric Chang     | unknowntpo          | opensource4you   |
 | Sophie Sun     | SophieTech88        | ExtraHop Network |
 | Xing Yong      | YxAc                | Xiaomi           |
 | Liwei Yang     | lw-yang             | Xiaomi           |

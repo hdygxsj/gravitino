@@ -20,6 +20,7 @@
 package org.apache.gravitino.cli.commands;
 
 import java.util.Map;
+import org.apache.gravitino.cli.CommandContext;
 
 /** List the properties of a metalake. */
 public class ListProperties extends Command {
@@ -27,11 +28,10 @@ public class ListProperties extends Command {
   /**
    * List the properties of an entity.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    */
-  public ListProperties(String url, boolean ignoreVersions) {
-    super(url, ignoreVersions);
+  public ListProperties(CommandContext context) {
+    super(context);
   }
 
   @Override
@@ -45,12 +45,6 @@ public class ListProperties extends Command {
    * @param properties The name, value pairs of properties.
    */
   public void printProperties(Map<String, String> properties) {
-    StringBuilder all = new StringBuilder();
-
-    for (Map.Entry<String, String> property : properties.entrySet()) {
-      all.append(property.getKey() + "," + property.getValue() + System.lineSeparator());
-    }
-
-    System.out.print(all.toString());
+    printResults(properties);
   }
 }

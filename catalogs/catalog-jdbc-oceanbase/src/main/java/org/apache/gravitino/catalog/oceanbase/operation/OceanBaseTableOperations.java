@@ -185,6 +185,7 @@ public class OceanBaseTableOperations extends JdbcTableOperations {
     }
   }
 
+  @Override
   protected void correctJdbcTableFields(
       Connection connection, String databaseName, String tableName, JdbcTable.Builder tableBuilder)
       throws SQLException {
@@ -325,7 +326,7 @@ public class OceanBaseTableOperations extends JdbcTableOperations {
     }
     // Return the generated SQL statement
     String result = "ALTER TABLE `" + tableName + "`\n" + String.join(",\n", alterSql) + ";";
-    LOG.info("Generated alter table:{} sql: {}", databaseName + "." + tableName, result);
+    LOG.info("Generated alter table:{}.{} sql: {}", databaseName, tableName, result);
     return result;
   }
 

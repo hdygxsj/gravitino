@@ -19,6 +19,13 @@
 
 package org.apache.gravitino.cli.commands;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import org.apache.gravitino.Audit;
+import org.apache.gravitino.authorization.Role;
+import org.apache.gravitino.authorization.SecurableObject;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
@@ -31,12 +38,11 @@ public class ListRoles extends Command {
   /**
    * Lists all groups in a metalake.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    */
-  public ListRoles(String url, boolean ignoreVersions, String metalake) {
-    super(url, ignoreVersions);
+  public ListRoles(CommandContext context, String metalake) {
+    super(context);
     this.metalake = metalake;
   }
 
@@ -52,9 +58,35 @@ public class ListRoles extends Command {
     } catch (Exception exp) {
       exitWithError(exp.getMessage());
     }
+    if (roles.length == 0) {
+      printInformation("No roles exist.");
+    } else {
+      Role[] roleObjects = Arrays.stream(roles).map(this::getRole).toArray(Role[]::new);
+      printResults(roleObjects);
+    }
+  }
 
-    String all = roles.length == 0 ? "No roles exist." : String.join(",", roles);
+  private Role getRole(String name) {
+    return new Role() {
+      @Override
+      public String name() {
+        return name;
+      }
 
-    System.out.println(all.toString());
+      @Override
+      public Map<String, String> properties() {
+        return null;
+      }
+
+      @Override
+      public List<SecurableObject> securableObjects() {
+        return null;
+      }
+
+      @Override
+      public Audit auditInfo() {
+        return null;
+      }
+    };
   }
 }

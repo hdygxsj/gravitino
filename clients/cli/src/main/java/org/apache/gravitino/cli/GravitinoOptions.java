@@ -26,6 +26,7 @@ import org.apache.commons.cli.Options;
 public class GravitinoOptions {
   public static final String AUDIT = "audit";
   public static final String AUTO = "auto";
+  public static final String CLIENT = "client";
   public static final String COLUMNFILE = "columnfile";
   public static final String COMMENT = "comment";
   public static final String DATATYPE = "datatype";
@@ -48,6 +49,7 @@ public class GravitinoOptions {
   public static final String PRIVILEGE = "privilege";
   public static final String PROPERTIES = "properties";
   public static final String PROPERTY = "property";
+  public static final String QUIET = "quiet";
   public static final String PROVIDER = "provider";
   public static final String RENAME = "rename";
   public static final String ROLE = "role";
@@ -64,6 +66,15 @@ public class GravitinoOptions {
   public static final String DISABLE = "disable";
   public static final String ALIAS = "alias";
   public static final String URI = "uri";
+  // TODO: temporary option for model version update, it will be refactored in the future, just
+  // prove the E2E flow.
+  public static final String NEW_URI = "newuri";
+  // TODO: temporary option for model version update, it will be refactored in the future, just
+  // prove the E2E flow.
+  public static final String NEW_ALIAS = "newalias";
+  // TODO: temporary option for model version update, it will be refactored in the future, just
+  // prove the E2E flow.
+  public static final String REMOVE_ALIAS = "removealias";
 
   /**
    * Builds and returns the CLI options for Gravitino.
@@ -75,7 +86,7 @@ public class GravitinoOptions {
 
     // Add options using helper method to avoid repetition
     options.addOption(createSimpleOption("h", HELP, "command help information"));
-    options.addOption(createSimpleOption("v", VERSION, "Gravitino client version"));
+    options.addOption(createSimpleOption(null, CLIENT, "Gravitino client version"));
     options.addOption(createSimpleOption("s", SERVER, "Gravitino server version"));
     options.addOption(createArgOption("u", URL, "Gravitino URL (default: http://localhost:8090)"));
     options.addOption(createArgOption("n", NAME, "full entity name (dot separated)"));
@@ -91,6 +102,7 @@ public class GravitinoOptions {
     options.addOption(createSimpleOption(null, SORTORDER, "display sortorder information"));
     options.addOption(createSimpleOption(null, ENABLE, "enable entities"));
     options.addOption(createSimpleOption(null, DISABLE, "disable entities"));
+    options.addOption(createSimpleOption(null, QUIET, "quiet mode"));
 
     // Create/update options
     options.addOption(createArgOption(RENAME, "new entity name"));
@@ -109,11 +121,15 @@ public class GravitinoOptions {
     options.addOption(createArgOption(DEFAULT, "default column value"));
     options.addOption(createSimpleOption("o", OWNER, "display entity owner"));
     options.addOption(createArgOption(COLUMNFILE, "CSV file describing columns"));
-    options.addOption(createSimpleOption(null, ALL, "all operation for --enable"));
+    options.addOption(createSimpleOption(null, ALL, "on all entities"));
 
     // model options
     options.addOption(createArgOption(null, URI, "model version artifact"));
     options.addOption(createArgsOption(null, ALIAS, "model aliases"));
+    options.addOption(createArgOption(null, VERSION, "Gravitino client version"));
+    options.addOption(createArgOption(null, NEW_URI, "New uri of a model version"));
+    options.addOption(createArgsOption(null, NEW_ALIAS, "New alias of a model version"));
+    options.addOption(createArgsOption(null, REMOVE_ALIAS, "Remove alias of a model version"));
 
     // Options that support multiple values
     options.addOption(createArgsOption("p", PROPERTIES, "property name/value pairs"));

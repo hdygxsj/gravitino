@@ -23,6 +23,8 @@ package org.apache.gravitino.cli;
 public class ErrorMessages {
   public static final String CATALOG_EXISTS = "Catalog already exists.";
   public static final String COLUMN_EXISTS = "Column already exists.";
+  public static final String DELETE_ANONYMOUS_USER =
+      "Can't delete anonymous user. This will cause unexpected behavior.";
   public static final String FILESET_EXISTS = "Fileset already exists.";
   public static final String GROUP_EXISTS = "Group already exists.";
   public static final String METALAKE_EXISTS = "Metalake already exists.";
@@ -37,7 +39,7 @@ public class ErrorMessages {
   public static final String ENTITY_IN_USE = " in use, please disable it first.";
 
   public static final String INVALID_ENABLE_DISABLE =
-      "Unable to us --enable and --disable at the same time";
+      "Unable to use --enable and --disable at the same time.";
   public static final String INVALID_OWNER_COMMAND =
       "Unsupported combination of options either use --user or --group.";
   public static final String INVALID_REMOVE_COMMAND =
@@ -64,6 +66,8 @@ public class ErrorMessages {
   public static final String MISSING_USER = "Missing --user option.";
   public static final String MISSING_VALUE = "Missing --value option.";
 
+  public static final String MULTIPLE_ALIASES_COMMAND_ERROR =
+      "This command only supports one --alias option.";
   public static final String MULTIPLE_ROLE_COMMAND_ERROR =
       "This command only supports one --role option.";
   public static final String MULTIPLE_TAG_COMMAND_ERROR =
@@ -79,6 +83,7 @@ public class ErrorMessages {
   public static final String UNKNOWN_GROUP = "Unknown group.";
   public static final String UNKNOWN_METALAKE = "Unknown metalake name.";
   public static final String UNKNOWN_MODEL = "Unknown model name.";
+  public static final String UNKNOWN_MODEL_VERSION = "Unknown model version.";
   public static final String UNKNOWN_PRIVILEGE = "Unknown privilege";
   public static final String UNKNOWN_ROLE = "Unknown role.";
   public static final String UNKNOWN_SCHEMA = "Unknown schema name.";

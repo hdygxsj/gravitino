@@ -16,7 +16,7 @@
 # under the License.
 from typing import Optional, Dict, List
 
-from gravitino.api.fileset import Fileset
+from gravitino.api.file.fileset import Fileset
 from gravitino.api.metadata_object import MetadataObject
 from gravitino.api.credential.supports_credentials import SupportsCredentials
 from gravitino.api.credential.credential import Credential
@@ -31,7 +31,6 @@ from gravitino.utils import HTTPClient
 
 
 class GenericFileset(Fileset, SupportsCredentials):
-
     _fileset: FilesetDTO
     """The fileset data transfer object"""
 
@@ -56,8 +55,8 @@ class GenericFileset(Fileset, SupportsCredentials):
     def type(self) -> Fileset.Type:
         return self._fileset.type()
 
-    def storage_location(self) -> str:
-        return self._fileset.storage_location()
+    def storage_locations(self) -> Dict[str, str]:
+        return self._fileset.storage_locations()
 
     def comment(self) -> Optional[str]:
         return self._fileset.comment()

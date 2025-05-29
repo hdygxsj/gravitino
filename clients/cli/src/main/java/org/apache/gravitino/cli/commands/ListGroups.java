@@ -19,6 +19,11 @@
 
 package org.apache.gravitino.cli.commands;
 
+import java.util.Arrays;
+import java.util.List;
+import org.apache.gravitino.Audit;
+import org.apache.gravitino.authorization.Group;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
@@ -31,12 +36,11 @@ public class ListGroups extends Command {
   /**
    * Lists all groups in a metalake.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    */
-  public ListGroups(String url, boolean ignoreVersions, String metalake) {
-    super(url, ignoreVersions);
+  public ListGroups(CommandContext context, String metalake) {
+    super(context);
     this.metalake = metalake;
   }
 
@@ -53,8 +57,30 @@ public class ListGroups extends Command {
       exitWithError(exp.getMessage());
     }
 
-    String all = groups.length == 0 ? "No groups exist." : String.join(",", groups);
+    if (groups.length == 0) {
+      printInformation("No groups found in metalake " + metalake);
+    } else {
+      Group[] groupObjects = Arrays.stream(groups).map(this::getGroup).toArray(Group[]::new);
+      printResults(groupObjects);
+    }
+  }
 
-    System.out.println(all.toString());
+  private Group getGroup(String name) {
+    return new Group() {
+      @Override
+      public String name() {
+        return name;
+      }
+
+      @Override
+      public List<String> roles() {
+        return null;
+      }
+
+      @Override
+      public Audit auditInfo() {
+        return null;
+      }
+    };
   }
 }

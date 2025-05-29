@@ -40,6 +40,7 @@ val scalaCollectionCompatVersion: String = libs.versions.scala.collection.compat
 dependencies {
   implementation(project(":catalogs:catalog-common"))
   implementation(libs.guava)
+  implementation(libs.caffeine)
 
   compileOnly(project(":clients:client-java-runtime", configuration = "shadow"))
   compileOnly("org.apache.iceberg:iceberg-spark-runtime-${sparkMajorVersion}_$scalaVersion:$icebergVersion")
@@ -113,6 +114,7 @@ dependencies {
   testImplementation(libs.junit.jupiter.api)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.mysql.driver)
+  testImplementation(libs.postgresql.driver)
   testImplementation(libs.testcontainers)
 
   testImplementation("org.apache.iceberg:iceberg-core:$icebergVersion")

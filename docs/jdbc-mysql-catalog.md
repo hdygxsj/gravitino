@@ -28,7 +28,7 @@ Gravitino saves some system information in schema and table comment, like `(From
 - Supports DDL operation for MySQL databases and tables.
 - Supports table index.
 - Supports [column default value](./manage-relational-metadata-using-gravitino.md#table-column-default-value) and [auto-increment](./manage-relational-metadata-using-gravitino.md#table-column-auto-increment).
-- Supports managing MySQL table features though table properties, like using `engine` to set MySQL storage engine.
+- Supports managing MySQL table features through table properties, like using `engine` to set MySQL storage engine.
 
 ### Catalog properties
 
@@ -83,7 +83,7 @@ Refer to [Manage Relational Metadata Using Gravitino](./manage-relational-metada
 - Supports DDL operation for MySQL tables.
 - Supports index.
 - Supports [column default value](./manage-relational-metadata-using-gravitino.md#table-column-default-value) and [auto-increment](./manage-relational-metadata-using-gravitino.md#table-column-auto-increment)..
-- Supports managing MySQL table features though table properties, like using `engine` to set MySQL storage engine.
+- Supports managing MySQL table features through table properties, like using `engine` to set MySQL storage engine.
 
 ### Table column types
 
@@ -185,6 +185,12 @@ Although MySQL itself does not support table properties, Gravitino offers table 
 |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-----------|------------|-----------|---------------|
 | `engine`                | The engine used by the table. For example `MyISAM`, `MEMORY`, `CSV`, `ARCHIVE`, `BLACKHOLE`, `FEDERATED`, `ndbinfo`, `MRG_MYISAM`, `PERFORMANCE_SCHEMA`. | `InnoDB`      | No        | No         | Yes       | 0.4.0         |
 | `auto-increment-offset` | Used to specify the starting value of the auto-increment field.                                                                                          | (none)        | No        | No         | Yes       | 0.4.0         |
+
+
+:::note
+Some MySQL storage engines, such as FEDERATED, are not enabled by default and require additional configuration to use. For example, to enable the FEDERATED engine, set federated=1 in the MySQL configuration file. Similarly, engines like ndbinfo, MRG_MYISAM, and PERFORMANCE_SCHEMA may also require specific prerequisites or configurations. For detailed instructions, 
+refer to the [MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/federated-storage-engine.html).
+:::
 
 ### Table indexes
 

@@ -32,6 +32,7 @@ dependencies {
 
   compileOnly(libs.hadoop3.client.api)
   compileOnly(libs.hadoop3.client.runtime)
+  compileOnly(libs.hadoop3.gcs)
 
   implementation(project(":catalogs:catalog-common")) {
     exclude("*")
@@ -56,6 +57,10 @@ tasks.withType(ShadowJar::class.java) {
   isZip64 = true
   configurations = listOf(project.configurations.runtimeClasspath.get())
   archiveClassifier.set("")
+
+  dependencies {
+    exclude(dependency("org.slf4j:slf4j-api"))
+  }
 
   // Relocate dependencies to avoid conflicts
   relocate("org.apache.httpcomponents", "org.apache.gravitino.gcp.shaded.org.apache.httpcomponents")

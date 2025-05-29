@@ -20,6 +20,8 @@
 package org.apache.gravitino.cli.commands;
 
 import java.util.List;
+import org.apache.gravitino.authorization.User;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
@@ -33,13 +35,12 @@ public class UserDetails extends Command {
   /**
    * Displays the roles of a user.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    * @param user The name of the user.
    */
-  public UserDetails(String url, boolean ignoreVersions, String metalake, String user) {
-    super(url, ignoreVersions);
+  public UserDetails(CommandContext context, String metalake, String user) {
+    super(context);
     this.metalake = metalake;
     this.user = user;
   }
@@ -48,10 +49,12 @@ public class UserDetails extends Command {
   @Override
   public void handle() {
     List<String> roles = null;
+    User userObject = null;
 
     try {
       GravitinoClient client = buildClient(metalake);
-      roles = client.getUser(user).roles();
+      userObject = client.getUser(user);
+      roles = userObject.roles();
     } catch (NoSuchMetalakeException err) {
       exitWithError(ErrorMessages.UNKNOWN_METALAKE);
     } catch (NoSuchUserException err) {
@@ -60,8 +63,10 @@ public class UserDetails extends Command {
       exitWithError(exp.getMessage());
     }
 
-    String all = roles.isEmpty() ? "The user has no roles." : String.join(",", roles);
-
-    System.out.println(all.toString());
+    if (roles == null || roles.isEmpty()) {
+      printInformation("The user has no roles.");
+    } else {
+      printResults(userObject);
+    }
   }
 }

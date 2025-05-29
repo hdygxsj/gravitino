@@ -7,7 +7,7 @@ license: "This software is licensed under the Apache License version 2."
 
 ## Overview
 
-Apache Gravitino(incubating) is a technical data catalog that uses a unified metadata paradigm to manage multiple data sources while still allowing multiple engines like Spark, Trino, and Flink, or Python to connect to these data sources for data processing through Gravitino.
+Apache Gravitino is a technical data catalog that uses a unified metadata paradigm to manage multiple data sources while still allowing multiple engines like Spark, Trino, and Flink, or Python to connect to these data sources for data processing through Gravitino.
 
 Because each underlying data source will have its own access control system, it can be difficult to plug in data engines with the intent of querying multiple of these data at once.
 This is especially important for data governance practitioners who have to worry about data access restrictions and data compliance issues, but this is streamlined through Gravitino.
@@ -56,7 +56,7 @@ More information you can see the [Authorization push down](authorization-pushdow
 As mentioned above, Gravitino uses Ownership to control the privileges of securable object in the management category and uses Role to control access securable objects,
 so when a user performs a specific operation on a specified resource,
 Gravitino will perform a composite authentication on the Ownership and Role to which the securable object belongs.
-When a user has more than one Role, Gravitino will use the user's current Role for authentication, and the user can switch the current Role to access a different securable object.
+When a user has more than one Role, Gravitino will use the user's all the Roles for authentication.
 
 ### Role
 
@@ -202,11 +202,11 @@ and `USE_SCHEMA` privileges on its parent schema.
 
 ### Table privileges
 
-| Name         | Supports Securable Object         | Operation                                        |
-|--------------|-----------------------------------|--------------------------------------------------|
-| CREATE_TABLE | Metalake, Catalog, Schema         | Create a table                                   |
-| MODIFY_TABLE | Metalake, Catalog, Schema, Table  | Write data to a table or modify the table schema |
-| SELECT_TABLE | Metalake, Catalog, Schema, Table  | Select data from a table                         |
+| Name         | Supports Securable Object         | Operation                                                                 |
+|--------------|-----------------------------------|---------------------------------------------------------------------------|
+| CREATE_TABLE | Metalake, Catalog, Schema         | Create a table                                                            |
+| MODIFY_TABLE | Metalake, Catalog, Schema, Table  | Select data from a data, write data to a table or modify the table schema |
+| SELECT_TABLE | Metalake, Catalog, Schema, Table  | Select data from a table                                                  |
 
 ### Topic privileges
 
@@ -223,6 +223,14 @@ and `USE_SCHEMA` privileges on its parent schema.
 | CREATE_FILESET | Metalake, Catalog, Schema          | Create a fileset                            |
 | WRITE_FILESET  | Metalake, Catalog, Schema, Fileset | Write a fileset (including alter a fileset) |
 | READ_FILESET   | Metalake, Catalog, Schema, Fileset | read a fileset                              |
+
+### Model privileges
+
+| Name                 | Supports Securable Object        | Operation                                                          |
+|----------------------|----------------------------------|--------------------------------------------------------------------|
+| CREATE_MODEL         | Metalake, Catalog, Schema        | Create a model                                                     |
+| CREATE_MODEL_VERSION | Metalake, Catalog, Schema, Model | Create a model version                                             |
+| USE_MODEL            | Metalake, Catalog, Schema, Model | View the metadata of the model and download all the model versions |
 
 ## Inheritance Model
 
@@ -817,7 +825,7 @@ curl -X PUT -H "Accept: application/vnd.gravitino.v1+json" \
 
 ```java
 GravitinoClient client = ...
-Group group = client.grantRolesToGroup(Lists.newList("role1"), "group1");
+Group group = client.revokeRolesFromGroup(Lists.newList("role1"), "group1");
 ```
 
 </TabItem>

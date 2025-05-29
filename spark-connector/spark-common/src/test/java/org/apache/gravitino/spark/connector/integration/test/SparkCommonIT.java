@@ -119,6 +119,20 @@ public abstract class SparkCommonIT extends SparkEnvIT {
 
   protected abstract boolean supportsReplaceColumns();
 
+  protected abstract boolean supportsSchemaAndTableProperties();
+
+  protected abstract boolean supportsComplexType();
+
+  protected abstract boolean supportsUpdateColumnPosition();
+
+  // @todo temporarily added for: https://github.com/apache/gravitino/issues/6907, should be removed
+  // after the issue is addressed
+  protected abstract boolean supportListTable();
+
+  protected SparkTableInfoChecker getTableInfoChecker() {
+    return SparkTableInfoChecker.create();
+  }
+
   // Use a custom database not the original default database because SparkCommonIT couldn't
   // read&write data to tables in default database. The main reason is default database location is
   // determined by `hive.metastore.warehouse.dir` in hive-site.xml which is local HDFS address
@@ -170,6 +184,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportListTable")
   void testListTables() {
     String tableName = "t_list";
     dropTableIfExists(tableName);
@@ -189,6 +204,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportsSchemaAndTableProperties")
   protected void testCreateAndLoadSchema() {
     String testDatabaseName = "t_create1";
     dropDatabaseIfExists(testDatabaseName);
@@ -218,6 +234,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportsSchemaAndTableProperties")
   protected void testAlterSchema() {
     String testDatabaseName = "t_alter";
     dropDatabaseIfExists(testDatabaseName);
@@ -266,7 +283,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     SparkTableInfo tableInfo = getTableInfo(tableName);
 
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create()
+        getTableInfoChecker()
             .withName(tableName)
             .withColumns(getSimpleTableColumn())
             .withComment(null);
@@ -287,7 +304,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     createSimpleTable(tableIdentifier);
     SparkTableInfo tableInfo = getTableInfo(tableIdentifier);
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create().withName(tableName).withColumns(getSimpleTableColumn());
+        getTableInfoChecker().withName(tableName).withColumns(getSimpleTableColumn());
     checker.check(tableInfo);
     checkTableReadWrite(tableInfo);
 
@@ -300,8 +317,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     dropTableIfExists(tableName);
     createSimpleTable(tableName);
     tableInfo = getTableInfo(tableName);
-    checker =
-        SparkTableInfoChecker.create().withName(tableName).withColumns(getSimpleTableColumn());
+    checker = getTableInfoChecker().withName(tableName).withColumns(getSimpleTableColumn());
     checker.check(tableInfo);
     checkTableReadWrite(tableInfo);
   }
@@ -317,7 +333,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     SparkTableInfo tableInfo = getTableInfo(tableName);
 
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create()
+        getTableInfoChecker()
             .withName(tableName)
             .withColumns(getSimpleTableColumn())
             .withComment(tableComment);
@@ -367,6 +383,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportListTable")
   void testListTable() {
     String table1 = "list1";
     String table2 = "list2";
@@ -396,6 +413,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportsSchemaAndTableProperties")
   void testAlterTableSetAndRemoveProperty() {
     String tableName = "test_property";
     dropTableIfExists(tableName);
@@ -425,8 +443,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
             "ALTER TABLE %s SET TBLPROPERTIES('%s'='%s')",
             tableName, ConnectorConstants.COMMENT, comment));
     SparkTableInfo tableInfo = getTableInfo(tableName);
-    SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create().withName(tableName).withComment(comment);
+    SparkTableInfoChecker checker = getTableInfoChecker().withName(tableName).withComment(comment);
     checker.check(tableInfo);
   }
 
@@ -487,6 +504,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportsUpdateColumnPosition")
   void testUpdateColumnPosition() {
     String tableName = "test_column_position";
     dropTableIfExists(tableName);
@@ -593,6 +611,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportsComplexType")
   void testComplexType() {
     String tableName = "complex_type_table";
     dropTableIfExists(tableName);
@@ -632,7 +651,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     sql(createTableSQL);
     SparkTableInfo tableInfo = getTableInfo(tableName);
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create()
+        getTableInfoChecker()
             .withName(tableName)
             .withColumns(getSimpleTableColumn())
             .withIdentifyPartition(Arrays.asList("name", "age"));
@@ -652,7 +671,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     sql(createTableSQL);
     SparkTableInfo tableInfo = getTableInfo(tableName);
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create()
+        getTableInfoChecker()
             .withName(tableName)
             .withColumns(getSimpleTableColumn())
             .withBucket(4, Arrays.asList("id", "name"));
@@ -672,7 +691,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     sql(createTableSQL);
     SparkTableInfo tableInfo = getTableInfo(tableName);
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create()
+        getTableInfoChecker()
             .withName(tableName)
             .withColumns(getSimpleTableColumn())
             .withBucket(4, Arrays.asList("id", "name"), Arrays.asList("name", "id"));
@@ -695,7 +714,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
 
     SparkTableInfo newTableInfo = getTableInfo(newTableName);
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create().withName(newTableName).withColumns(getSimpleTableColumn());
+        getTableInfoChecker().withName(newTableName).withColumns(getSimpleTableColumn());
     checker.check(newTableInfo);
 
     List<String> tableData = getTableData(newTableName);
@@ -797,6 +816,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
   }
 
   @Test
+  @EnabledIf("supportsSchemaAndTableProperties")
   void testTableOptions() {
     String tableName = "options_table";
     dropTableIfExists(tableName);
@@ -806,7 +826,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
     SparkTableInfo tableInfo = getTableInfo(tableName);
 
     SparkTableInfoChecker checker =
-        SparkTableInfoChecker.create()
+        getTableInfoChecker()
             .withName(tableName)
             .withTableProperties(ImmutableMap.of(TableCatalog.OPTION_PREFIX + "a", "b"));
     checker.check(tableInfo);
@@ -983,7 +1003,7 @@ public abstract class SparkCommonIT extends SparkEnvIT {
 
   protected void checkTableColumns(
       String tableName, List<SparkColumnInfo> columns, SparkTableInfo tableInfo) {
-    SparkTableInfoChecker.create()
+    getTableInfoChecker()
         .withName(tableName)
         .withColumns(columns)
         .withComment(null)

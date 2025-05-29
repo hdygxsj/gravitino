@@ -19,7 +19,9 @@
 
 package org.apache.gravitino.cli.commands;
 
+import java.util.Collections;
 import java.util.Map;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
@@ -35,13 +37,12 @@ public class ListTagProperties extends ListProperties {
   /**
    * List the properties of a tag.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    * @param tag The name of the tag.
    */
-  public ListTagProperties(String url, boolean ignoreVersions, String metalake, String tag) {
-    super(url, ignoreVersions);
+  public ListTagProperties(CommandContext context, String metalake, String tag) {
+    super(context);
     this.metalake = metalake;
     this.tag = tag;
   }
@@ -61,7 +62,10 @@ public class ListTagProperties extends ListProperties {
       exitWithError(exp.getMessage());
     }
 
-    Map<String, String> properties = gTag.properties();
-    printProperties(properties);
+    if (gTag != null) {
+      Map<String, String> props =
+          gTag.properties() != null ? gTag.properties() : Collections.emptyMap();
+      printProperties(props);
+    }
   }
 }

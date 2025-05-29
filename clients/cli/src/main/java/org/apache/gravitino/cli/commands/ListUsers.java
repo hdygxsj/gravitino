@@ -19,6 +19,11 @@
 
 package org.apache.gravitino.cli.commands;
 
+import java.util.Arrays;
+import java.util.List;
+import org.apache.gravitino.Audit;
+import org.apache.gravitino.authorization.User;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
@@ -31,12 +36,11 @@ public class ListUsers extends Command {
   /**
    * Lists all users in a metalake.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    */
-  public ListUsers(String url, boolean ignoreVersions, String metalake) {
-    super(url, ignoreVersions);
+  public ListUsers(CommandContext context, String metalake) {
+    super(context);
     this.metalake = metalake;
   }
 
@@ -53,8 +57,30 @@ public class ListUsers extends Command {
       exitWithError(exp.getMessage());
     }
 
-    String all = String.join(",", users);
+    if (users.length == 0) {
+      printInformation("No users exist.");
+    } else {
+      User[] userObjects = Arrays.stream(users).map(this::getUser).toArray(User[]::new);
+      printResults(userObjects);
+    }
+  }
 
-    System.out.println(all.toString());
+  private User getUser(String user) {
+    return new User() {
+      @Override
+      public String name() {
+        return user;
+      }
+
+      @Override
+      public List<String> roles() {
+        return null;
+      }
+
+      @Override
+      public Audit auditInfo() {
+        return null;
+      }
+    };
   }
 }

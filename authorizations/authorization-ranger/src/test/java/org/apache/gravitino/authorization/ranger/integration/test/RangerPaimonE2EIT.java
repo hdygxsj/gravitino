@@ -115,7 +115,7 @@ public class RangerPaimonE2EIT extends RangerBaseE2EIT {
   }
 
   @Override
-  protected void useCatalog() {
+  protected void reset() {
     String userName1 = System.getenv(HADOOP_USER_NAME);
     String roleName = currentFunName();
     SecurableObject securableObject =
@@ -130,32 +130,32 @@ public class RangerPaimonE2EIT extends RangerBaseE2EIT {
   }
 
   @Override
-  protected void checkUpdateSQLWithReadWritePrivileges() {
+  protected void checkUpdateSQLWithSelectModifyPrivileges() {
     // Kyuubi Paimon Ranger plugin doesn't support to update yet.
   }
 
   @Override
-  protected void checkUpdateSQLWithReadPrivileges() {
+  protected void checkUpdateSQLWithSelectPrivileges() {
     // Kyuubi Paimon Ranger plugin doesn't support to update yet.
   }
 
   @Override
-  protected void checkUpdateSQLWithWritePrivileges() {
+  protected void checkUpdateSQLWithModifyPrivileges() {
     // Kyuubi Paimon Ranger plugin doesn't support to update yet.
   }
 
   @Override
-  protected void checkDeleteSQLWithReadWritePrivileges() {
+  protected void checkDeleteSQLWithSelectModifyPrivileges() {
     // Kyuubi Paimon Ranger plugin doesn't support to delete yet.
   }
 
   @Override
-  protected void checkDeleteSQLWithReadPrivileges() {
+  protected void checkDeleteSQLWithSelectPrivileges() {
     // Kyuubi Paimon Ranger plugin doesn't support to delete yet.
   }
 
   @Override
-  protected void checkDeleteSQLWithWritePrivileges() {
+  protected void checkDeleteSQLWithModifyPrivileges() {
     // Kyuubi Paimon Ranger plugin doesn't support to delete yet.
   }
 

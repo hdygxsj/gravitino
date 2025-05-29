@@ -19,14 +19,17 @@
 
 package org.apache.gravitino.cli.commands;
 
-import com.google.common.base.Joiner;
+import java.util.Arrays;
+import org.apache.gravitino.Audit;
 import org.apache.gravitino.NameIdentifier;
 import org.apache.gravitino.Namespace;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchCatalogException;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
 import org.apache.gravitino.exceptions.NoSuchSchemaException;
+import org.apache.gravitino.file.Fileset;
 
 /** List all fileset names in a schema. */
 public class ListFilesets extends Command {
@@ -38,15 +41,13 @@ public class ListFilesets extends Command {
   /**
    * Lists all filesets in a schema.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    * @param catalog The name of the catalog.
    * @param schema The name of the schema.
    */
-  public ListFilesets(
-      String url, boolean ignoreVersions, String metalake, String catalog, String schema) {
-    super(url, ignoreVersions);
+  public ListFilesets(CommandContext context, String metalake, String catalog, String schema) {
+    super(context);
     this.metalake = metalake;
     this.catalog = catalog;
     this.schema = schema;
@@ -71,8 +72,31 @@ public class ListFilesets extends Command {
       exitWithError(exp.getMessage());
     }
 
-    String all = filesets.length == 0 ? "No filesets exist." : Joiner.on(",").join(filesets);
+    if (filesets.length == 0) {
+      printInformation("No filesets exist.");
+    } else {
+      Fileset[] filesetObjects =
+          Arrays.stream(filesets).map(ident -> getFileset(ident.name())).toArray(Fileset[]::new);
+      printResults(filesetObjects);
+    }
+  }
 
-    System.out.println(all.toString());
+  private Fileset getFileset(String name) {
+    return new Fileset() {
+      @Override
+      public String name() {
+        return name;
+      }
+
+      @Override
+      public Type type() {
+        return null;
+      }
+
+      @Override
+      public Audit auditInfo() {
+        return null;
+      }
+    };
   }
 }

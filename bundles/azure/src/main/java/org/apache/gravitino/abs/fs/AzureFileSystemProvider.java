@@ -19,19 +19,29 @@
 
 package org.apache.gravitino.abs.fs;
 
+import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.FS_AZURE_ACCOUNT_AUTH_TYPE_PROPERTY_NAME;
+import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.FS_AZURE_ACCOUNT_IS_HNS_ENABLED;
+import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.FS_AZURE_SAS_TOKEN_PROVIDER_TYPE;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import org.apache.gravitino.catalog.hadoop.fs.FileSystemProvider;
 import org.apache.gravitino.catalog.hadoop.fs.FileSystemUtils;
+import org.apache.gravitino.catalog.hadoop.fs.SupportsCredentialVending;
+import org.apache.gravitino.credential.ADLSTokenCredential;
+import org.apache.gravitino.credential.AzureAccountKeyCredential;
+import org.apache.gravitino.credential.Credential;
 import org.apache.gravitino.storage.AzureProperties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.azurebfs.services.AuthType;
 
-public class AzureFileSystemProvider implements FileSystemProvider {
+public class AzureFileSystemProvider implements FileSystemProvider, SupportsCredentialVending {
 
   @VisibleForTesting public static final String ABS_PROVIDER_SCHEME = "abfss";
 
@@ -44,7 +54,6 @@ public class AzureFileSystemProvider implements FileSystemProvider {
   @Override
   public FileSystem getFileSystem(@Nonnull Path path, @Nonnull Map<String, String> config)
       throws IOException {
-    Configuration configuration = new Configuration();
 
     Map<String, String> hadoopConfMap =
         FileSystemUtils.toHadoopConfigMap(config, ImmutableMap.of());
@@ -58,13 +67,38 @@ public class AzureFileSystemProvider implements FileSystemProvider {
           config.get(AzureProperties.GRAVITINO_AZURE_STORAGE_ACCOUNT_KEY));
     }
 
-    if (!config.containsKey(ABFS_IMPL_KEY)) {
-      configuration.set(ABFS_IMPL_KEY, ABFS_IMPL);
+    if (!hadoopConfMap.containsKey(ABFS_IMPL_KEY)) {
+      hadoopConfMap.put(ABFS_IMPL_KEY, ABFS_IMPL);
     }
 
-    hadoopConfMap.forEach(configuration::set);
+    Configuration configuration = FileSystemUtils.createConfiguration(hadoopConfMap);
+    return FileSystem.newInstance(path.toUri(), configuration);
+  }
 
-    return FileSystem.get(path.toUri(), configuration);
+  @Override
+  public Map<String, String> getFileSystemCredentialConf(Credential[] credentials) {
+    Credential credential = AzureStorageUtils.getSuitableCredential(credentials);
+    Map<String, String> result = Maps.newHashMap();
+    if (credential instanceof ADLSTokenCredential) {
+      ADLSTokenCredential adlsTokenCredential = (ADLSTokenCredential) credential;
+
+      String accountName =
+          String.format("%s.dfs.core.windows.net", adlsTokenCredential.accountName());
+      result.put(FS_AZURE_ACCOUNT_AUTH_TYPE_PROPERTY_NAME + "." + accountName, AuthType.SAS.name());
+      result.put(
+          FS_AZURE_SAS_TOKEN_PROVIDER_TYPE + "." + accountName,
+          AzureSasCredentialsProvider.class.getName());
+      result.put(FS_AZURE_ACCOUNT_IS_HNS_ENABLED, "true");
+    } else if (credential instanceof AzureAccountKeyCredential) {
+      AzureAccountKeyCredential azureAccountKeyCredential = (AzureAccountKeyCredential) credential;
+      result.put(
+          String.format(
+              "fs.azure.account.key.%s.dfs.core.windows.net",
+              azureAccountKeyCredential.accountName()),
+          azureAccountKeyCredential.accountKey());
+    }
+
+    return result;
   }
 
   @Override

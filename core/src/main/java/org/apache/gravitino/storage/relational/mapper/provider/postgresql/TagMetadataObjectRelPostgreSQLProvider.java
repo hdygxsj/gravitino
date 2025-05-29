@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.gravitino.storage.relational.mapper.CatalogMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.FilesetMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.MetalakeMetaMapper;
+import org.apache.gravitino.storage.relational.mapper.ModelMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.SchemaMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.TableColumnMapper;
 import org.apache.gravitino.storage.relational.mapper.TableMetaMapper;
@@ -109,6 +110,11 @@ public class TagMetadataObjectRelPostgreSQLProvider extends TagMetadataObjectRel
         + TableColumnMapper.COLUMN_TABLE_NAME
         + " cot WHERE cot.catalog_id = #{catalogId} AND"
         + " cot.column_id = tmt.metadata_object_id AND tmt.metadata_object_type = 'COLUMN'"
+        + " UNION "
+        + " SELECT mt.catalog_id FROM "
+        + ModelMetaMapper.TABLE_NAME
+        + " mt WHERE mt.catalog_id = #{catalogId} AND"
+        + " mt.model_id = tmt.metadata_object_id AND tmt.metadata_object_type = 'MODEL'"
         + ")";
   }
 
@@ -143,6 +149,11 @@ public class TagMetadataObjectRelPostgreSQLProvider extends TagMetadataObjectRel
         + TableColumnMapper.COLUMN_TABLE_NAME
         + " cot WHERE cot.schema_id = #{schemaId} AND"
         + " cot.column_id = tmt.metadata_object_id AND tmt.metadata_object_type = 'COLUMN'"
+        + " UNION "
+        + " SELECT mt.schema_id FROM "
+        + ModelMetaMapper.TABLE_NAME
+        + " mt WHERE mt.schema_id = #{schemaId} AND "
+        + " mt.model_id = tmt.metadata_object_id AND tmt.metadata_object_type = 'MODEL'"
         + ")";
   }
 
@@ -197,5 +208,15 @@ public class TagMetadataObjectRelPostgreSQLProvider extends TagMetadataObjectRel
         + " mm ON tm.metalake_id = mm.metalake_id"
         + " WHERE mm.metalake_name = #{metalakeName} AND tm.tag_name = #{tagName}"
         + " AND te.deleted_at = 0 AND tm.deleted_at = 0 AND mm.deleted_at = 0";
+  }
+
+  @Override
+  public String deleteTagEntityRelsByLegacyTimeline(
+      @Param("legacyTimeline") Long legacyTimeline, @Param("limit") int limit) {
+    return "DELETE FROM "
+        + TagMetadataObjectRelMapper.TAG_METADATA_OBJECT_RELATION_TABLE_NAME
+        + " WHERE id IN (SELECT id FROM "
+        + TagMetadataObjectRelMapper.TAG_METADATA_OBJECT_RELATION_TABLE_NAME
+        + " WHERE deleted_at > 0 AND deleted_at < #{legacyTimeline} LIMIT #{limit})";
   }
 }

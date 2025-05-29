@@ -16,13 +16,12 @@
 # under the License.
 from typing import Optional
 
-from gravitino.api.model import Model
+from gravitino.api.model.model import Model
 from gravitino.dto.audit_dto import AuditDTO
 from gravitino.dto.model_dto import ModelDTO
 
 
 class GenericModel(Model):
-
     _model_dto: ModelDTO
     """The model DTO object."""
 

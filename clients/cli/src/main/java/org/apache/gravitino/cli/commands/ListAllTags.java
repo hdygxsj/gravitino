@@ -19,9 +19,11 @@
 
 package org.apache.gravitino.cli.commands;
 
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchMetalakeException;
+import org.apache.gravitino.tag.Tag;
 
 /* Lists all tags in a metalake. */
 public class ListAllTags extends Command {
@@ -31,30 +33,31 @@ public class ListAllTags extends Command {
   /**
    * Lists all tags in a metalake.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    */
-  public ListAllTags(String url, boolean ignoreVersions, String metalake) {
-    super(url, ignoreVersions);
+  public ListAllTags(CommandContext context, String metalake) {
+    super(context);
     this.metalake = metalake;
   }
 
   /** Lists all tags in a metalake. */
   @Override
   public void handle() {
-    String[] tags = new String[0];
+    Tag[] tags = new Tag[] {};
     try {
       GravitinoClient client = buildClient(metalake);
-      tags = client.listTags();
+      tags = client.listTagsInfo();
     } catch (NoSuchMetalakeException err) {
       exitWithError(ErrorMessages.UNKNOWN_METALAKE);
     } catch (Exception exp) {
       exitWithError(exp.getMessage());
     }
 
-    String all = tags.length == 0 ? "No tags exist." : String.join(",", tags);
-
-    System.out.println(all.toString());
+    if (tags.length == 0) {
+      printInformation("No tags exist.");
+    } else {
+      printResults(tags);
+    }
   }
 }

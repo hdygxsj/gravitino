@@ -22,10 +22,12 @@ import static org.apache.gravitino.storage.relational.mapper.OwnerMetaMapper.OWN
 
 import org.apache.gravitino.storage.relational.mapper.CatalogMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.FilesetMetaMapper;
+import org.apache.gravitino.storage.relational.mapper.ModelMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.SchemaMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.TableMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.TopicMetaMapper;
 import org.apache.gravitino.storage.relational.mapper.provider.base.OwnerMetaBaseSQLProvider;
+import org.apache.ibatis.annotations.Param;
 
 public class OwnerMetaPostgreSQLProvider extends OwnerMetaBaseSQLProvider {
   @Override
@@ -87,11 +89,16 @@ public class OwnerMetaPostgreSQLProvider extends OwnerMetaBaseSQLProvider {
         + FilesetMetaMapper.META_TABLE_NAME
         + " ft WHERE ft.catalog_id = #{catalogId} AND"
         + " ft.fileset_id = ot.metadata_object_id AND ot.metadata_object_type = 'FILESET'"
+        + " UNION "
+        + " SELECT mt.catalog_id FROM "
+        + ModelMetaMapper.TABLE_NAME
+        + " mt WHERE mt.catalog_id = #{catalogId} AND"
+        + " mt.model_id = ot.metadata_object_id AND ot.metadata_object_type = 'MODEL'"
         + ")";
   }
 
   @Override
-  public String sotDeleteOwnerRelBySchemaId(Long schemaId) {
+  public String softDeleteOwnerRelBySchemaId(Long schemaId) {
     return "UPDATE  "
         + OWNER_TABLE_NAME
         + " ot SET deleted_at = floor(extract(epoch from((current_timestamp - timestamp '1970-01-01 00:00:00')*1000))) "
@@ -115,6 +122,21 @@ public class OwnerMetaPostgreSQLProvider extends OwnerMetaBaseSQLProvider {
         + FilesetMetaMapper.META_TABLE_NAME
         + " ft WHERE ft.schema_id = #{schemaId} AND "
         + "ft.fileset_id = ot.metadata_object_id AND ot.metadata_object_type = 'FILESET'"
+        + " UNION "
+        + " SELECT mt.schema_id FROM "
+        + ModelMetaMapper.TABLE_NAME
+        + " mt WHERE mt.schema_id = #{schemaId} AND "
+        + "mt.model_id = ot.metadata_object_id AND ot.metadata_object_type = 'MODEL'"
         + ")";
+  }
+
+  @Override
+  public String deleteOwnerMetasByLegacyTimeline(
+      @Param("legacyTimeline") Long legacyTimeline, @Param("limit") int limit) {
+    return "DELETE FROM "
+        + OWNER_TABLE_NAME
+        + " WHERE id IN (SELECT id FROM "
+        + OWNER_TABLE_NAME
+        + " WHERE deleted_at > 0 AND deleted_at < #{legacyTimeline} LIMIT #{limit})";
   }
 }

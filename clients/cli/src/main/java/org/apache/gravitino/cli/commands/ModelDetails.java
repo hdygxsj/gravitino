@@ -19,8 +19,8 @@
 
 package org.apache.gravitino.cli.commands;
 
-import java.util.Arrays;
 import org.apache.gravitino.NameIdentifier;
+import org.apache.gravitino.cli.CommandContext;
 import org.apache.gravitino.cli.ErrorMessages;
 import org.apache.gravitino.client.GravitinoClient;
 import org.apache.gravitino.exceptions.NoSuchCatalogException;
@@ -40,21 +40,15 @@ public class ModelDetails extends Command {
   /**
    * Displays the details of a model.
    *
-   * @param url The URL of the Gravitino server.
-   * @param ignoreVersions If true don't check the client/server versions match.
+   * @param context The command context.
    * @param metalake The name of the metalake.
    * @param catalog The name of the catalog.
    * @param schema The name of schema.
    * @param model The name of model.
    */
   public ModelDetails(
-      String url,
-      boolean ignoreVersions,
-      String metalake,
-      String catalog,
-      String schema,
-      String model) {
-    super(url, ignoreVersions);
+      CommandContext context, String metalake, String catalog, String schema, String model) {
+    super(context);
     this.metalake = metalake;
     this.catalog = catalog;
     this.schema = schema;
@@ -66,13 +60,11 @@ public class ModelDetails extends Command {
   public void handle() {
     NameIdentifier name = NameIdentifier.of(schema, model);
     Model gModel = null;
-    int[] versions = new int[0];
 
     try {
       GravitinoClient client = buildClient(metalake);
       ModelCatalog modelCatalog = client.loadCatalog(catalog).asModelCatalog();
       gModel = modelCatalog.getModel(name);
-      versions = modelCatalog.listModelVersions(name);
     } catch (NoSuchMetalakeException noSuchMetalakeException) {
       exitWithError(ErrorMessages.UNKNOWN_METALAKE);
     } catch (NoSuchCatalogException noSuchCatalogException) {
@@ -84,9 +76,7 @@ public class ModelDetails extends Command {
     } catch (Exception err) {
       exitWithError(err.getMessage());
     }
-    String basicInfo =
-        String.format("Model name %s, latest version: %s%n", gModel.name(), gModel.latestVersion());
-    String versionInfo = Arrays.toString(versions);
-    System.out.printf(basicInfo + "versions: " + versionInfo);
+
+    printResults(gModel);
   }
 }

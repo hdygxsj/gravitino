@@ -159,23 +159,28 @@ public class DorisTableOperations extends JdbcTableOperations {
     // If the backend server is less than DEFAULT_REPLICATION_FACTOR_IN_SERVER_SIDE (3), we need to
     // set the property 'replication_num' to 1 explicitly.
     if (!resultMap.containsKey(REPLICATION_FACTOR)) {
-      // Try to check the number of backend servers.
-      String query = "select count(*) from information_schema.backends where Alive = 'true'";
+      // Try to check the number of backend servers using `show backends`, this SQL is supported by
+      // all versions of Doris
+      String query = "show backends";
 
       try (Connection connection = dataSource.getConnection();
           Statement statement = connection.createStatement();
           ResultSet resultSet = statement.executeQuery(query)) {
+        int backendCount = 0;
         while (resultSet.next()) {
-          int backendCount = resultSet.getInt(1);
-          if (backendCount < DEFAULT_REPLICATION_FACTOR_IN_SERVER_SIDE) {
-            resultMap.put(
-                REPLICATION_FACTOR,
-                DORIS_TABLE_PROPERTIES_META
-                    .propertyEntries()
-                    .get(REPLICATION_FACTOR)
-                    .getDefaultValue()
-                    .toString());
+          String alive = resultSet.getString("Alive");
+          if ("true".equalsIgnoreCase(alive)) {
+            backendCount++;
           }
+        }
+        if (backendCount < DEFAULT_REPLICATION_FACTOR_IN_SERVER_SIDE) {
+          resultMap.put(
+              REPLICATION_FACTOR,
+              DORIS_TABLE_PROPERTIES_META
+                  .propertyEntries()
+                  .get(REPLICATION_FACTOR)
+                  .getDefaultValue()
+                  .toString());
         }
       } catch (Exception e) {
         throw new RuntimeException("Failed to get the number of backend servers", e);
@@ -567,16 +572,12 @@ public class DorisTableOperations extends JdbcTableOperations {
       alterSql.add("MODIFY COMMENT \"" + newComment + "\"");
     }
 
-    if (!setProperties.isEmpty()) {
-      alterSql.add(generateTableProperties(setProperties));
-    }
-
     if (CollectionUtils.isEmpty(alterSql)) {
       return "";
     }
     // Return the generated SQL statement
     String result = "ALTER TABLE `" + tableName + "`\n" + String.join(",\n", alterSql) + ";";
-    LOG.info("Generated alter table:{} sql: {}", databaseName + "." + tableName, result);
+    LOG.info("Generated alter table:{}.{} sql: {}", databaseName, tableName, result);
     return result;
   }
 
@@ -602,11 +603,14 @@ public class DorisTableOperations extends JdbcTableOperations {
   }
 
   private String generateTableProperties(List<TableChange.SetProperty> setProperties) {
-    return setProperties.stream()
-        .map(
-            setProperty ->
-                String.format("\"%s\" = \"%s\"", setProperty.getProperty(), setProperty.getValue()))
-        .collect(Collectors.joining(",\n"));
+    String properties =
+        setProperties.stream()
+            .map(
+                setProperty ->
+                    String.format(
+                        "\"%s\" = \"%s\"", setProperty.getProperty(), setProperty.getValue()))
+            .collect(Collectors.joining(",\n"));
+    return "set (" + properties + ")";
   }
 
   private String updateColumnCommentFieldDefinition(

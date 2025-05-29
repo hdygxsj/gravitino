@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,7 +56,6 @@ import org.slf4j.LoggerFactory;
 
 /** The service class for role metadata. It provides the basic database operations for role. */
 public class RoleMetaService {
-
   private static final Logger LOG = LoggerFactory.getLogger(RoleMetaService.class);
   private static final RoleMetaService INSTANCE = new RoleMetaService();
 
@@ -292,7 +293,7 @@ public class RoleMetaService {
     return true;
   }
 
-  private static List<SecurableObjectPO> listSecurableObjectsByRoleId(Long roleId) {
+  public static List<SecurableObjectPO> listSecurableObjectsByRoleId(Long roleId) {
     return SessionUtils.getWithoutCommit(
         SecurableObjectMapper.class, mapper -> mapper.listSecurableObjectsByRoleId(roleId));
   }
@@ -353,22 +354,40 @@ public class RoleMetaService {
     List<SecurableObjectPO> securableObjectPOs = listSecurableObjectsByRoleId(po.getRoleId());
     List<SecurableObject> securableObjects = Lists.newArrayList();
 
-    for (SecurableObjectPO securableObjectPO : securableObjectPOs) {
-      String fullName =
-          MetadataObjectService.getMetadataObjectFullName(
-              securableObjectPO.getType(), securableObjectPO.getMetadataObjectId());
-      if (fullName != null) {
-        securableObjects.add(
-            POConverters.fromSecurableObjectPO(
-                fullName, securableObjectPO, getType(securableObjectPO.getType())));
-      } else {
-        LOG.warn(
-            "The securable object {} {} may be deleted",
-            securableObjectPO.getMetadataObjectId(),
-            securableObjectPO.getType());
-      }
-    }
+    securableObjectPOs.stream()
+        .collect(Collectors.groupingBy(SecurableObjectPO::getType))
+        .forEach(
+            (type, objects) -> {
+              List<Long> objectIds =
+                  objects.stream()
+                      .map(SecurableObjectPO::getMetadataObjectId)
+                      .collect(Collectors.toList());
 
+              // dynamically calling getter function based on type
+              Map<Long, String> objectIdAndNameMap =
+                  Optional.of(MetadataObject.Type.valueOf(type))
+                      .map(MetadataObjectService.TYPE_TO_FULLNAME_FUNCTION_MAP::get)
+                      .map(getter -> getter.apply(objectIds))
+                      .orElseThrow(
+                          () ->
+                              // for example: MetadataObject.Type.COLUMN
+                              new IllegalArgumentException(
+                                  "Unsupported metadata object type: " + type));
+
+              for (SecurableObjectPO securableObjectPO : objects) {
+                String fullName = objectIdAndNameMap.get(securableObjectPO.getMetadataObjectId());
+                if (fullName != null) {
+                  securableObjects.add(
+                      POConverters.fromSecurableObjectPO(
+                          fullName, securableObjectPO, getType(securableObjectPO.getType())));
+                } else {
+                  LOG.warn(
+                      "The securable object {} {} may be deleted",
+                      securableObjectPO.getMetadataObjectId(),
+                      securableObjectPO.getType());
+                }
+              }
+            });
     return securableObjects;
   }
 
