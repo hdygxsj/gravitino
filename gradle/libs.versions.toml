@@ -120,6 +120,7 @@ google-auth = "1.28.0"
 aliyun-credentials = "0.3.12"
 openlineage = "1.29.0"
 concurrent-trees = "2.6.0"
+jcstress = "0.8.15"
 ognl = "3.4.7"
 
 [libraries]
@@ -309,3 +310,4 @@ tasktree = {id = "com.dorongold.task-tree", version = "2.1.1"}
 dependencyLicenseReport = {id = "com.github.jk1.dependency-license-report", version = "2.9"}
 bom = {id = "org.cyclonedx.bom", version = "1.5.0"}
 errorprone = {id = "net.ltgt.errorprone", version.ref = "error-prone"}
+jcstress = { id = "io.github.reyerizo.gradle.jcstress", version.ref = "jcstress" }
