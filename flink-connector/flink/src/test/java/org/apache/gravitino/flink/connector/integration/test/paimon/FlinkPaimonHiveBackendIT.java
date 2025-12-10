@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.apache.gravitino.catalog.lakehouse.paimon.PaimonConstants;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 @Tag("gravitino-docker-test")
 public class FlinkPaimonHiveBackendIT extends FlinkPaimonCatalogIT {
@@ -50,6 +51,36 @@ public class FlinkPaimonHiveBackendIT extends FlinkPaimonCatalogIT {
   protected Map<String, String> getPaimonCatalogOptions() {
     return ImmutableMap.of(
         PaimonConstants.CATALOG_BACKEND, "hive", "warehouse", warehouse, "uri", hiveMetastoreUri);
+  }
+
+  @Test
+  public void testPartitionTable(){
+    String catalogName = "testPartitionCatalog";
+    String schemaName = "testPartitionSchema";
+    String tableName = "testPartitionTable";
+    tableEnv.executeSql(
+            String.format(
+                    "create catalog %s with ("
+                            + "'type'='gravitino-paimon', "
+                            + "'warehouse'='%s',"
+                            + "'metastore'='hive',"
+                            + "'uri'='%s'"
+                            + ")",
+                    catalogName, warehouse, hiveMetastoreUri));
+    tableEnv.executeSql("create database %s".formatted(schemaName));
+    tableEnv.executeSql("""
+            create table if not exists %s.%s.%s (
+            id BIGINT,
+            name STRING,
+            city STRING,
+            age INT,
+            PRIMARY KEY (id, city) NOT ENFORCED
+            ) PARTITIONED BY (city)
+            with (
+            'metastore.partitioned-table' = 'true'
+            ) ;
+            """.formatted(catalogName,schemaName,tableName));
+
   }
 
   @Override

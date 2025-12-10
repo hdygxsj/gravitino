@@ -97,4 +97,6 @@ public abstract class FlinkPaimonCatalogIT extends FlinkCommonIT {
     Assertions.assertEquals(
         numCatalogs, tableEnv.listCatalogs().length, "The created catalog should be dropped.");
   }
+
+
 }
